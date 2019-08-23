@@ -26,8 +26,12 @@ spec:
           serviceName: "{{ template "nginx.fullname" $ }}"
           servicePort: http
   {{- end }}
-  {{- if .Values.ingress.tls }}
+  {{- if .Values.ingress.certManager }}
   tls:
-{{ toYaml .Values.ingress.tls | indent 4 }}
+  - hosts:
+    {{- range .Values.ingress.hosts }}
+    - {{ .name }}
+    {{- end }}
+    secretName: {{ template "fullname" . }}-tls
   {{- end }}
 {{- end }}

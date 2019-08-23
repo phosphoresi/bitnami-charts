@@ -41,13 +41,14 @@ replicaCount: 1
 ## For minikube, set this to NodePort, elsewhere use LoadBalancer
 ##
 service:
-  type: LoadBalancer
+  type: ClusterIP
   ## Provide optional annotations to the service i.e. for external-dns
   # annotations:
   #   external-dns.alpha.kubernetes.io/hostname: yourservicename.k8s.yourcompany.com
   ##
   ## HTTP Port
   port: 80
+  targetPort: 80
   ##
   ## loadBalancerIP:
   ## nodePorts:
@@ -65,11 +66,11 @@ service:
 ##
 ingress:
   ## Set to true to enable ingress record generation
-  enabled: false
-
+  enabled: true
+  class: nginx
   ## Set this to true in order to add the corresponding annotations for cert-manager
-  certManager: false
-
+  certManager: true
+  issuer: letsencrypt-prod
   ## Ingress annotations done as key:value pairs
   ## For a full list of possible ingress annotations, please see
   ## ref: https://github.com/kubernetes/ingress-nginx/blob/master/docs/annotations.md
@@ -88,9 +89,6 @@ ingress:
   ## The tls configuration for the ingress
   ## see: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
   tls:
-  - hosts:
-      - nginx.local
-    secretName: nginx.local-tls
 
   secrets:
   ## If you're providing your own certificates, please use this to add the certificates as secrets
@@ -197,3 +195,6 @@ metrics:
     ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
     ##
   # resources: {}
+
+probes:
+  enabled: true
