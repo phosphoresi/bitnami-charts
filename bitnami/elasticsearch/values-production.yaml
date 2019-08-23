@@ -6,6 +6,7 @@
 #   imageRegistry: myRegistryName
 #   imagePullSecrets:
 #     - myRegistryKeySecretName
+#   storageClass: myStorageClass
 
 ## Bitnami Elasticsearch image version
 ## ref: https://hub.docker.com/r/bitnami/elasticsearch/tags/
@@ -13,7 +14,7 @@
 image:
   registry: docker.io
   repository: bitnami/elasticsearch
-  tag: 7.0.1
+  tag: 7.3.1-debian-9-r0
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -25,6 +26,51 @@ image:
   ##
   # pullSecrets:
   #   - myRegistryKeySecretName
+
+## Image that performs the sysctl operation
+##
+sysctlImage:
+  enabled: false
+  registry: docker.io
+  repository: bitnami/minideb
+  tag: latest
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: Always
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  # pullSecrets:
+  #   - myRegistryKeySecretName
+
+## Init containers parameters:
+## volumePermissions: Change the owner and group of the persistent volume mountpoint to runAsUser:fsGroup values from the securityContext section.
+##
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/minideb
+    tag: latest
+    pullPolicy: Always
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+  resources: {}
+
+## String to partially override elasticsearch.fullname template (will maintain the release name)
+##
+# nameOverride:
+
+## String to fully override elasticsearch.fullname template
+##
+# fullnameOverride:
 
 ## Elasticsearch cluster name
 ##
@@ -66,6 +112,9 @@ master:
     annotations: {}
     # loadBalancerIP:
 
+  ## Provide annotations for the master pods.
+  podAnnotations: {}
+
   ## Configure resource requests and limits
   ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
   ##
@@ -90,24 +139,10 @@ master:
     successThreshold: 1
     failureThreshold: 5
 
-## Image that performs the sysctl operation
+## Elasticsearch discovery node parameters
 ##
-sysctlImage:
-  enabled: false
-  registry: docker.io
-  repository: bitnami/minideb
-  tag: latest
-  ## Specify a imagePullPolicy
-  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
-  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
-  ##
-  pullPolicy: IfNotPresent
-  ## Optionally specify an array of imagePullSecrets.
-  ## Secrets must be manually created in the namespace.
-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-  ##
-  # pullSecrets:
-  #   - myRegistryKeySecretName
+discovery:
+  name: discovery
 
 ## Pod Security Context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
@@ -117,10 +152,8 @@ securityContext:
   fsGroup: 1001
   runAsUser: 1001
 
-## Elasticsearch discovery node parameters
-##
-discovery:
-  name: discovery
+# Cluster domain
+clusterDomain: cluster.local
 
 ## Elasticsearch coordinating-only node parameters
 ##
@@ -147,6 +180,9 @@ coordinating:
     ##
     annotations: {}
     # loadBalancerIP:
+
+  ## Provide annotations for the coordinating pods.
+  podAnnotations: {}
 
   ## Configure resource requests and limits
   ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -186,6 +222,8 @@ data:
   antiAffinity: "soft"
   ## node affinity
   # nodeAffinity:
+  ## Provide annotations for the data pods.
+  podAnnotations: {}
   ## Configure resource requests and limits
   ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
   ##
@@ -265,6 +303,9 @@ ingest:
     annotations: {}
     # loadBalancerIP:
 
+  ## Provide annotations for the ingest pods.
+  podAnnotations: {}
+
   ## Configure resource requests and limits
   ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
   ##
@@ -295,7 +336,7 @@ metrics:
   image:
     registry: docker.io
     repository: bitnami/elasticsearch-exporter
-    tag: 1.0.2
+    tag: 1.1.0-debian-9-r2
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
@@ -303,11 +344,13 @@ metrics:
     ##
     # pullSecrets:
     #   - myRegistryKeySecretName
+  ## Provide annotations for the metrics pods.
+  podAnnotations: {}
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/port: "9108"
+    prometheus.io/port: "9114"
   service:
     type: ClusterIP
-  resources: {}
-  #  requests:
-  #    cpu: 25m
+  resources:
+    # requests:
+    #   cpu: 25m

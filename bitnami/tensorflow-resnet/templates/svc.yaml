@@ -1,16 +1,20 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "fullname" . }}
+  name: {{ template "tensorflow-resnet.fullname" . }}
   labels:
-    app: {{ template "name" . }}
+    app: {{ template "tensorflow-resnet.name" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
 spec:
   type: {{ .Values.serviceType }}
   ports:
-  - port: {{ .Values.server.port }}
-    protocol: TCP
+  - name: tf-serving
+    port: {{ .Values.server.port }}
+    targetPort: tf-serving
+  - name: tf-serving-api
+    port: {{ .Values.server.restApiPort }}
+    targetPort: tf-serving-api
   selector:
-    app: {{ template "name" . }}
+    app: {{ template "tensorflow-resnet.name" . }}

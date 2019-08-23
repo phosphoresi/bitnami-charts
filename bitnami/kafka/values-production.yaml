@@ -6,6 +6,7 @@
 #   imageRegistry: myRegistryName
 #   imagePullSecrets:
 #     - myRegistryKeySecretName
+#   storageClass: myStorageClass
 
 ## Bitnami Kafka image version
 ## ref: https://hub.docker.com/r/bitnami/kafka/tags/
@@ -13,12 +14,12 @@
 image:
   registry: docker.io
   repository: bitnami/kafka
-  tag: 2.2.0
+  tag: 2.3.0-debian-9-r4
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
   ##
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -31,6 +32,30 @@ image:
   ## ref:  https://github.com/bitnami/minideb-extras/#turn-on-bash-debugging
   debug: false
 
+## String to partially override kafka.fullname template (will maintain the release name)
+# nameOverride:
+
+ ## String to fully override kafka.fullname template
+# fullnameOverride:
+
+## Init containers parameters:
+## volumePermissions: Change the owner and group of the persistent volume mountpoint to runAsUser:fsGroup values from the securityContext section.
+##
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/minideb
+    tag: latest
+    pullPolicy: Always
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+  resources: {}
+
 ## StatefulSet controller supports automated updates. There are two valid update strategies: RollingUpdate and OnDelete
 ## ref: https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#updating-statefulsets
 ##
@@ -40,6 +65,13 @@ updateStrategy: RollingUpdate
 ## https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#partitions
 ##
 # rollingUpdatePartition:
+
+## Limits the number of pods of the replicated application that are down simultaneously from voluntary disruptions
+## The PDB will only be created if replicaCount is greater than 1
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/disruptions
+##
+podDisruptionBudget:
+  maxUnavailable: 1
 
 replicaCount: 3
 
@@ -79,6 +111,12 @@ allowPlaintextListener: false
 
 ## Hostname and port the broker will advertise to producers and consumers.
 # advertisedListeners:
+
+## The protocol->listener mapping
+# listenerSecurityProtocolMap:
+
+## The listener that the brokers should communicate on
+# interBrokerListenerName:
 
 ## ID of the Kafka node.
 brokerId: -1
@@ -153,7 +191,13 @@ socketSendBufferBytes: 102400
 zookeeperConnectionTimeoutMs: 6000
 
 ## The endpoint identification algorithm to validate server hostname using server certificate.
-sslEndpointIdentificationAlgorithm	: https
+sslEndpointIdentificationAlgorithm: https
+
+## All the parameters from the configuration file can be overwritten by using environment variables with this format: KAFKA_CFG_{KEY}
+##
+# extraEnvVars:
+#   - name: KAFKA_CFG_BACKGROUND_THREADS
+#     value: "10"
 
 ## Authentication parameteres
 ## https://github.com/bitnami/bitnami-docker-kafka#security
@@ -197,6 +241,9 @@ securityContext:
   fsGroup: 1001
   runAsUser: 1001
 
+# Cluster domain
+clusterDomain: cluster.local
+
 ## Kubernetes configuration
 ## For minikube, set this to NodePort, elsewhere use LoadBalancer
 ##
@@ -224,6 +271,12 @@ service:
 ##
 persistence:
   enabled: true
+  ## A manually managed Persistent Volume and Claim
+  ## If defined, PVC must be created manually before volume will be bound
+  ## The value is evaluated as a template, so, for example, the name can depend on .Release or .Chart
+  ##
+  # existingClaim:
+
   # storageClass: "-"
   accessModes:
     - ReadWriteOnce
@@ -248,7 +301,7 @@ affinity: {}
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
-resources:
+resources: {}
 #  limits:
 #    cpu: 200m
 #    memory: 1Gi
@@ -283,9 +336,9 @@ metrics:
 
     image:
       registry: docker.io
-      repository: danielqsj/kafka-exporter
-      tag: v1.0.1
-      pullPolicy: Always
+      repository: bitnami/kafka-exporter
+      tag: 1.2.0-debian-9-r3
+      pullPolicy: IfNotPresent
       ## Optionally specify an array of imagePullSecrets.
       ## Secrets must be manually created in the namespace.
       ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -314,9 +367,9 @@ metrics:
 
     image:
       registry: docker.io
-      repository: solsson/kafka-prometheus-jmx-exporter@sha256
-      tag: a23062396cd5af1acdf76512632c20ea6be76885dfc20cd9ff40fb23846557e8
-      pullPolicy: Always
+      repository: bitnami/jmx-exporter
+      tag: 0.12.0-debian-9-r3
+      pullPolicy: IfNotPresent
       ## Optionally specify an array of imagePullSecrets.
       ## Secrets must be manually created in the namespace.
       ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
