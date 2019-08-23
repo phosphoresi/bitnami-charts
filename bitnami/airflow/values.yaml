@@ -6,6 +6,7 @@
 #   imageRegistry: myRegistryName
 #   imagePullSecrets:
 #     - myRegistryKeySecretName
+#   storageClass: myStorageClass
 
 ## Bitnami Airflow image version
 ## ref: https://hub.docker.com/r/bitnami/airflow/tags/
@@ -13,12 +14,12 @@
 image:
   registry: docker.io
   repository: bitnami/airflow
-  tag: 1.10.3
+  tag: 1.10.4-debian-9-r1
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
   ##
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -37,12 +38,12 @@ image:
 schedulerImage:
   registry: docker.io
   repository: bitnami/airflow-scheduler
-  tag: 1.10.3
+  tag: 1.10.4-debian-9-r13
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
   ##
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -61,12 +62,12 @@ schedulerImage:
 workerImage:
   registry: docker.io
   repository: bitnami/airflow-worker
-  tag: 1.10.3
+  tag: 1.10.4-debian-9-r13
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
   ##
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -85,7 +86,7 @@ workerImage:
 git:
   registry: docker.io
   repository: bitnami/git
-  tag: latest
+  tag: 2.23.0-debian-9-r3
   pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
@@ -93,6 +94,14 @@ git:
   ##
   # pullSecrets:
   #   - myRegistryKeySecretName
+
+## String to partially override airflow.fullname template (will maintain the release name)
+##
+# nameOverride:
+
+## String to fully override airflow.fullname template
+##
+# fullnameOverride:
 
 ## StatefulSet controller supports automated updates. There are two valid update strategies: RollingUpdate and OnDelete
 ## ref: https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#updating-statefulsets
@@ -119,9 +128,10 @@ airflow:
   ## Enable in order to download DAG files from git repository.
   ##
   cloneDagFilesFromGit:
-    enabled: true
-    repository: https://github.com/tompizmor/sample-airflow-dag
-    revision: master
+    enabled: false
+    # repository:
+    # branch:
+    # interval:
   ## URL used to access to airflow web ui
   ##
   # baseUrl:
@@ -329,8 +339,8 @@ metrics:
 
   image:
     registry: docker.io
-    repository: pbweb/airflow-prometheus-exporter
-    tag: latest
+    repository: bitnami/airflow-exporter
+    tag: 0.20180711.0-debian-9-r10
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.

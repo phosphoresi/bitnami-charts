@@ -6,6 +6,7 @@
 #   imageRegistry: myRegistryName
 #   imagePullSecrets:
 #     - myRegistryKeySecretName
+#   storageClass: myStorageClass
 
 ## Bitnami Zookeeper image version
 ## ref: https://hub.docker.com/r/bitnami/zookeeper/tags/
@@ -13,12 +14,12 @@
 image:
   registry: docker.io
   repository: bitnami/zookeeper
-  tag: 3.4.14
+  tag: 3.5.5-debian-9-r29
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
   ##
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -30,6 +31,30 @@ image:
   ## ref:  https://github.com/bitnami/minideb-extras/#turn-on-bash-debugging
   ##
   debug: false
+
+## String to partially override zookeeper.fullname template (will maintain the release name)
+# nameOverride:
+
+## String to fully override zookeeper.fullname template
+# fullnameOverride:
+
+## Init containers parameters:
+## volumePermissions: Change the owner and group of the persistent volume mountpoint to runAsUser:fsGroup values from the securityContext section.
+##
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/minideb
+    tag: latest
+    pullPolicy: Always
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+  resources: {}
 
 ## StatefulSet controller supports automated updates. There are two valid update strategies: RollingUpdate and OnDelete
 ## ref: https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#updating-statefulsets
@@ -47,6 +72,9 @@ podDisruptionBudget:
 ## https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#partitions
 ##
 # rollingUpdatePartition:
+
+# Cluster domain
+clusterDomain: cluster.local
 
 ## StatefulSet controller supports relax its ordering guarantees while preserving its uniqueness and identity guarantees. There are two valid pod management policies: OrderedReady and Parallel
 ## ref: https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#pod-management-policy
@@ -90,16 +118,20 @@ auth:
   ## Password that will use Zookeeper clients to auth
   ##
   # clientPassword:
-  ## Comma, semicolon or whitespace separated list of user to be created. Example: user1,user2,admin
+  ## Comma, semicolon or whitespace separated list of user to be created. Specify them as a string, for example: "user1,user2,admin"
   ##
-  # serverUsers: []
-  ## Comma, semicolon or whitespace separated list of passwords to assign to users when created. Example: pass4user1, pass4user2, pass4admin
+  # serverUsers: ""
+  ## Comma, semicolon or whitespace separated list of passwords to assign to users when created. Specify them as a string, for example: "pass4user1, pass4user2, pass4admin"
   ##
-  # serverPasswords: []
+  # serverPasswords: ""
 
 ## Size in MB for the Java Heap options (Xmx and XMs). This env var is ignored if Xmx an Xms are configured via JVMFLAGS
 ##
 heapSize: 1024
+
+## Log level for the Zookeeper server. ERROR by default. Have in mind if you set it to INFO or WARN the ReadinessProve will produce a lot of logs.
+##
+logLevel: ERROR
 
 ## Default JVMFLAGS for the ZooKeeper process
 ##
@@ -117,6 +149,7 @@ service:
   port: 2181
   followerPort: 2888
   electionPort: 3888
+  publishNotReadyAddresses: true
 
 ## Zookeeper Pod Security Context
 securityContext:
@@ -188,8 +221,8 @@ metrics:
 
   image:
     registry: docker.io
-    repository: javsalgar/zookeeper-exporter
-    tag: latest
+    repository: bitnami/zookeeper-exporter
+    tag: 0.1.1-debian-9-r0
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.
@@ -203,6 +236,8 @@ metrics:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9141"
   podLabels: {}
+
+  timeoutSeconds: 3
 
   ## Metrics exporter resource requests and limits
   ## ref: http://kubernetes.io/docs/user-guide/compute-resources/

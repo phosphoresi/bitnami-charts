@@ -23,6 +23,10 @@ spec:
         release: {{ .Release.Name | quote }}
         chart: {{ template "elasticsearch.chart" . }}
         role: "metrics"
+{{- with .Values.metrics.podAnnotations }}
+      annotations:
+{{ toYaml . | indent 8 }}
+{{- end }}
     spec:
 {{- include "elasticsearch.imagePullSecrets" . | indent 6 }}
       containers:
@@ -32,7 +36,7 @@ spec:
         args: [ "-es.uri=http://{{ template "elasticsearch.coordinating.fullname" . }}:{{ .Values.coordinating.service.port }}", "-es.all=true" ]
         ports:
         - name: metrics
-          containerPort: 9108
+          containerPort: 9114
         livenessProbe:
           httpGet:
             path: /metrics

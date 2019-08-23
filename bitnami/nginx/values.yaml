@@ -13,7 +13,7 @@
 image:
   registry: docker.io
   repository: bitnami/nginx
-  tag: 1.16.0
+  tag: 1.16.1-debian-9-r0
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -26,13 +26,24 @@ image:
   # pullSecrets:
   #   - myRegistryKeySecretName
 
+## String to partially override nginx.fullname template (will maintain the release name)
+##
+# nameOverride:
+
+## String to fully override nginx.fullname template
+##
+# fullnameOverride:
+
+## Number of replicas to deploy
+replicaCount: 1
+
 ## Kubernetes configuration
 ## For minikube, set this to NodePort, elsewhere use LoadBalancer
 ##
 service:
   type: ClusterIP
   ## Provide optional annotations to the service i.e. for external-dns
-  # annotations: 
+  # annotations:
   #   external-dns.alpha.kubernetes.io/hostname: yourservicename.k8s.yourcompany.com
   ##
   ## HTTP Port
@@ -108,10 +119,58 @@ ingress:
 #     }
 #   }
 
+## Liveness Probe. The block is directly forwarded into the deployment, so you can use whatever livenessProbe configuration you want.
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+##
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+## Readiness Probe. The block is directly forwarded into the deployment, so you can use whatever readinessProbe configuration you want.
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 5
+  timeoutSeconds: 3
+  periodSeconds: 5
+
 ## Pod annotations
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
 podAnnotations: {}
+
+## Node Affinity. The value is evaluated as a template.
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity-beta-feature
+##
+nodeAffinity: {}
+## Pod Affinity. The value is evaluated as a template.
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+##
+podAffinity: {}
+## Pod AntiAffinity
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+##
+podAntiAffinity: soft
+
+## Node labels for pod assignment. The value is evaluated as a template.
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+##
+nodeSelector: {}
+## Tolerations for pod assignment. The value is evaluated as a template.
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+##
+tolerations: {}
+
+## Resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+# resources: {}
 
 ## Prometheus Exporter / Metrics
 ##
@@ -119,8 +178,8 @@ metrics:
   enabled: false
   image:
     registry: docker.io
-    repository: nginx/nginx-prometheus-exporter
-    tag: 0.1.0
+    repository: bitnami/nginx-exporter
+    tag: 0.4.2-debian-9-r22
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
     ## Secrets must be manually created in the namespace.

@@ -1,0 +1,18 @@
+{{- if .Values.persistence.enabled -}}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "magento.fullname" . }}-magento
+  labels:
+    app: {{ template "magento.fullname" . }}
+    chart: {{ template "magento.chart" . }}
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  accessModes:
+    - {{ .Values.persistence.magento.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.magento.size | quote }}
+  {{ include "magento.storageClass" . }}
+{{- end -}}

@@ -5,6 +5,7 @@
 ## TL;DR;
 
 ```bash
+$ helm repo add bitnami https://charts.bitnami.com/bitnami
 $ helm install bitnami/nginx
 ```
 
@@ -21,10 +22,11 @@ Bitnami charts can be used with [Kubeapps](https://kubeapps.com/) for deployment
 To install the chart with the release name `my-release`:
 
 ```bash
+$ helm repo add bitnami https://charts.bitnami.com/bitnami
 $ helm install --name my-release bitnami/nginx
 ```
 
-The command deploys NGINX Open Source on the Kubernetes cluster in the default configuration.
+These commands deploy NGINX Open Source on the Kubernetes cluster in the default configuration.
 
 > **Tip**: List all releases using `helm list`
 
@@ -48,19 +50,27 @@ The following tables lists the configurable parameters of the NGINX Open Source 
 | `global.imagePullSecrets`        | Global Docker registry secret names as an array  | `[]` (does not add image pull secrets to deployed pods)      |
 | `image.registry`                 | NGINX image registry                             | `docker.io`                                                  |
 | `image.repository`               | NGINX Image name                                 | `bitnami/nginx`                                              |
-| `image.tag`                      | NGINX Image tag                                  | `{VERSION}`                                                  |
-| `image.pullPolicy`               | NGINX image pull policy                          | `Always` if `imageTag` is `latest`, else `IfNotPresent`      |
+| `image.tag`                      | NGINX Image tag                                  | `{TAG_NAME}`                                                 |
+| `image.pullPolicy`               | NGINX image pull policy                          | `IfNotPresent`                                               |
 | `image.pullSecrets`              | Specify docker-registry secret names as an array | `[]` (does not add image pull secrets to deployed pods)      |
+| `nameOverride`                   | String to partially override nginx.fullname template with a string (will prepend the release name) | `nil`      |
+| `fullnameOverride`               | String to fully override nginx.fullname template with a string                                     | `nil`      |
 | `serverBlock`                    | Custom NGINX server block                        | `nil`                                                        |
 | `podAnnotations`                 | Pod annotations                                  | `{}`                                                         |
+| `nodeAffinity`                   | Node Affinity rules for pod assignment. The value is evaluated as a template | `{}`                             |
+| `podAffinity`                    | Affinity rules for pod assignment. The value is evaluated as a template      | `{}`                             |
+| `podAntiAffinity`                | Anti-Affinity rules for pod assignment. Allowed values: `soft` and `hard`    | `soft`                           |
+| `nodeSelector`                   | Node labels for pod assignment. The value is evaluated as a template         | `{}`                             |
+| `tolerations`                    | Tolerations for pod assignment. The value is evaluated as a template         | `{}`                             |
 | `metrics.enabled`                | Start a side-car prometheus exporter             | `false`                                                      |
 | `metrics.image.registry`         | Promethus exporter image registry                | `docker.io`                                                  |
-| `metrics.image.repository`       | Promethus exporter image name                    | `nginx/nginx-prometheus-exporter`                            |
-| `metrics.image.tag`              | Promethus exporter image tag                     | `0.1.0`                                                      |
+| `metrics.image.repository`       | Promethus exporter image name                    | `bitnami/nginx-exporter`                                     |
+| `metrics.image.tag`              | Promethus exporter image tag                     | `{TAG_NAME}`                                                 |
 | `metrics.image.pullPolicy`       | Image pull policy                                | `IfNotPresent`                                               |
 | `metrics.image.pullSecrets`      | Specify docker-registry secret names as an array | `[]` (does not add image pull secrets to deployed pods)      |
 | `metrics.podAnnotations`         | Additional annotations for Metrics exporter pod  | `{prometheus.io/scrape: "true", prometheus.io/port: "9113"}` |
 | `metrics.resources`              | Exporter resource requests/limit                 | {}                                                           |
+| `replicaCount`                   | Number of replicas to deploy                     | `1`                                                          |
 | `service.type`                   | Kubernetes Service type                          | `LoadBalancer`                                               |
 | `service.port`                   | Service HTTP port                                | `80`                                                         |
 | `service.nodePorts.http`         | Kubernetes http node port                        | `""`                                                         |
@@ -77,6 +87,9 @@ The following tables lists the configurable parameters of the NGINX Open Source 
 | `ingress.secrets[0].name`        | TLS Secret Name                                  | `nil`                                                        |
 | `ingress.secrets[0].certificate` | TLS Secret Certificate                           | `nil`                                                        |
 | `ingress.secrets[0].key`         | TLS Secret Key                                   | `nil`                                                        |
+| `livenessProbe`                  | Deployment Liveness Probe                        | See `values.yaml`                                            |
+| `readinessProbe`                 | Deployment Readiness Probe                       | See `values.yaml`                                            |
+| `resources`                      | Resource requests/limit                          | {}                                                           |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
@@ -95,6 +108,12 @@ $ helm install --name my-release -f values.yaml bitnami/nginx
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
+
+### [Rolling VS Immutable tags](https://docs.bitnami.com/containers/how-to/understand-rolling-tags-containers/)
+
+It is strongly recommended to use immutable tags in a production environment. This ensures your deployment does not change automatically if the same tag is updated with a different image.
+
+Bitnami will release a new chart updating its containers if a new version of the main container, significant changes, or critical vulnerabilities exist.
 
 ### Providing a custom server block
 
